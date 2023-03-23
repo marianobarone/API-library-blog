@@ -1,10 +1,10 @@
 const bcrypt = require('bcrypt');
 const joi = require("joi");
+const auth = require("../middleware/auth.js");
 const usersRouter = require('express').Router();
 const dataUsers = require('../data/usersDB.js')
 
-// router.get("/", auth, async function (req, res) {
-  usersRouter.get("/", async function (request, response) {
+usersRouter.get("/", auth, async function (request, response) {
   const users = await dataUsers.getUsers();
   response.send(users)
 });

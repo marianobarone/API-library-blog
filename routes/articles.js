@@ -1,26 +1,26 @@
 const express = require('express');
-const router = express.Router();
+const articlesRouter = express.Router();
 const joi = require("joi");
+const auth = require("../middleware/auth.js");
 const dataArticles = require('../data/articleDB.js')
 
-
-router.get('/', async function (req, res, next) {
+articlesRouter.get('/', async function (request, response, next) {
     let articles = await dataArticles.getArticles();
-    res.json(articles);
+    response.json(articles);
 })
 
-router.get('/:id', async function (req, res, next) {
-    let article = await dataArticles.getArticle(req.params.id);
+articlesRouter.get('/:id', async function (request, response, next) {
+    let article = await dataArticles.getArticle(request.params.id);
     if (article) {
-        res.json(article);
+        response.json(article);
     } else {
-        res.status(404).send('Articulo no encontrado');
+        response.status(404).send('Articulo no encontrado');
     }
 })
 
-router.post('/', async (req, res) => {
+articlesRouter.post('/', auth, async (request, response) => {
     console.log("ENDPOINT PARA CREAR ARTICULO");
-    console.log('Este es el body: ' + JSON.stringify(req.body));
+    console.log('Este es el body: ' + JSON.stringify(request.body));
 
     const schema = joi.object({
         title: joi.string().required(),
@@ -33,23 +33,23 @@ router.post('/', async (req, res) => {
     var today = new Date();
     var date = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
 
-    const result = schema.validate(req.body);
-    req.body.date = date;
-    req.body.comments = []
+    const result = schema.validate(request.body);
+    request.body.date = date;
+    request.body.comments = []
 
     if (result.error) {
-        res.status(400).send(result.error.details[0].message);
+        response.status(400).send(result.error.details[0].message);
     } else {
-        let article = req.body;
+        let article = request.body;
         article = await dataArticles.addArticle(article);
-        res.json(article);
+        response.json(article);
     }
 })
 
-router.post('/:idArticle/comment', async (req, res) => {
+articlesRouter.post('/:idArticle/comment', async (request, response) => {
     console.log("Llega a endpoint--> /:idArticle/comment")
 
-    console.log("Body de post" + req.body);
+    console.log("Body de post" + request.body);
 
     const schema = joi.object({
         author: joi.string().required(),
@@ -60,46 +60,33 @@ router.post('/:idArticle/comment', async (req, res) => {
     var today = new Date();
     var date = today.getDate() + '-' + (today.getMonth() + 1) + '-' + today.getFullYear();
 
-    const result = schema.validate(req.body);
-    req.body.date = date;
+    const result = schema.validate(request.body);
+    request.body.date = date;
 
     if (result.error) {
-        res.status(400).send(result.error.details[0].message);
+        response.status(400).send(result.error.details[0].message);
     } else {
-        let comment = req.body;
-        article = await dataArticles.addComment(req.params.idArticle, comment);
+        let comment = request.body;
+        article = await dataArticles.addComment(request.params.idArticle, comment);
 
         console.log(JSON.stringify(article))
-        res.json(article);
+        response.json(article);
     }
 });
 
-// router.delete('/:idArticle'), async (req, res) => {
-//     console.log("Llega a endpoint DELETE /:idArticle");
-//     const articuloEncontrado = await dataArticles.getArticle(req.params.idArticle);
-
-//     if (articuloEncontrado) {
-//         dataArticles.deleteArticle(req.params.idArticle);
-//         res.status(200).send('Sucursal eliminada');
-//     }
-//     else {
-//         res.status(404).send('Articulo no encontrado');
-//     }
-// }
-
-router.delete('/:idArticle', async (req, res) => {
+articlesRouter.delete('/:idArticle', auth, async (request, response) => {
     console.log("Llega a endpoint DELETE /:idArticle");
-    const articuloEncontrado = await dataArticles.getArticle(req.params.idArticle);
+    const articuloEncontrado = await dataArticles.getArticle(request.params.idArticle);
 
     if (articuloEncontrado) {
-        const result = await dataArticles.deleteArticle(req.params.idArticle);
+        const result = await dataArticles.deleteArticle(request.params.idArticle);
         console.log("Resultado: " + JSON.stringify(result));
-        // res.json(result);
-        res.status(200).send('Articulo eliminado');
+        // response.json(result);
+        response.status(200).send('Articulo eliminado');
     }
     else {
-        res.status(404).send('Articulo no encontrado');
+        response.status(404).send('Articulo no encontrado');
     }
 });
 
-module.exports = router;
+module.exports = articlesRouter;
