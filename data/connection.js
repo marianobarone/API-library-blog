@@ -6,8 +6,6 @@ const pas = process.env.SECRET;
 console.log("MONGO URI: " + uri);
 console.log("PASS: " + pas);
 
-
-
 const client = new mongoclient(uri);
 
 let instance = null;
