@@ -1,6 +1,11 @@
 require("dotenv").config();
 const mongoclient = require('mongodb').MongoClient;
 const uri = process.env.MONGO_URI;
+const pas = process.env.SECRET;
+
+console.log("MONGO URI: " + uri);
+console.log("PASS: " + pas);
+
 const client = new mongoclient(uri);
 
 let instance = null;
