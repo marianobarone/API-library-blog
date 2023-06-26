@@ -33,11 +33,16 @@ loginRouter.post('/', async (request, response) => {
             email: user.email,
         }
 
-        const token = dataUsers.generateAuthToken(userForToken);
+        const { token, refreshToken } = dataUsers.generateAuthTokens(userForToken);
+        // const { token } = dataUsers.generateAuthTokens(userForToken);
+
+        console.log("TOKEN: " + token);
+        console.log("REFRESH_TOKEN: " + refreshToken);
 
         response.status(200).json({
             userForToken,
-            token
+            token,
+            refreshToken
         });
     } catch (error) {
         response.status(401).send(error.message);

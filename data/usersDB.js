@@ -2,6 +2,7 @@ const connection = require('./connection.js')
 const objectId = require("mongodb").ObjectId;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const tokenList = {};
 
 async function addUser(user) {
     const clientmongo = await connection.getConnection();
@@ -37,18 +38,25 @@ async function getUser(email) {
     return user;
 }
 
-function generateAuthToken(user) {
-    const token = jwt.sign(user, process.env.SECRET, {
-        expiresIn: "2h",
-    });
-    return token;
-}
+function generateAuthTokens(user) {
+    console.log("Llega a generateAuthToken");
+    console.log(process.env.SECRET);
+    // console.log(process.env.REFRESH_TOKEN_SECRET);
 
+    const tokens = {
+        token: jwt.sign(user, process.env.SECRET, { expiresIn: "7h" }),
+        // refreshToken: jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "1" })
+    }
+
+    // tokenList[tokens.refreshToken] = tokens
+    console.log("TOKEN LIST: " + JSON.stringify(tokenList));
+    return tokens;
+}
 
 
 module.exports = {
     addUser,
     getUsers,
     getUser,
-    generateAuthToken
+    generateAuthTokens
 } 

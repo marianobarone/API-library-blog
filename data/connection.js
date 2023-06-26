@@ -8,8 +8,6 @@ let instance = null;
 async function getConnection() {
   if (instance == null) {
     try {
-      let cone = process.env.MONGO_URI;
-      console.log(cone);
       instance = await client.connect();      
     } catch (err) {
       console.log(err.message);

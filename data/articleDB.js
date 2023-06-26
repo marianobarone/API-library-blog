@@ -40,6 +40,54 @@ async function addArticle(article) {
     }
 }
 
+async function updateArticle(article) {
+    const clientmongo = await connection.getConnection();
+    const query = { _id: new objectId(article._id) };
+    const findedArticle = await getArticle(article._id);
+
+    findedArticle.title = article.title;
+    // findedArticle.headerImg = article.headerImg;
+    findedArticle.body = article.body;
+    findedArticle.date = article.date;
+    findedArticle.comments = article.comments;
+
+    console.log("FINDED ARTICLE UPDATED : " + JSON.stringify(findedArticle));
+
+    const newvalues = {
+        $set: {
+            title: article.title,
+            body: article.body,
+            date: article.date,
+            comments: article.comments
+        },
+    };
+
+    const result = await clientmongo
+        .db("BooksBlog")
+        .collection("Articles")
+        .updateOne(query, newvalues);
+    return result;
+}
+
+async function updateComment(articleId, comment) {
+    console.log("LLEGA A UPDATECOMMENT");
+    const query = { _id: new objectId(articleId) };
+    const findedArticle = await getArticle(articleId);
+    console.log("FINDED ARTICLE: "+JSON.stringify(findedArticle));
+    const oldComment = findedArticle.comments.find(item => item._id == comment._id);
+    console.log("COMENTARIO OLD: " + JSON.stringify(oldComment));
+
+    oldComment.author = comment.author != "" ? comment.author : oldComment.author;
+    oldComment.date = comment.date != "" ? comment.date : oldComment.date;
+    oldComment.body = comment.body != "" ? comment.body : oldComment.body;
+
+    const result = updateArticle(findedArticle);
+
+    return result;
+
+
+}
+
 async function addComment(articleId, comment) {
     const clientmongo = await connection.getConnection();
 
@@ -59,7 +107,6 @@ async function addComment(articleId, comment) {
     article.comments.push(comment);
 
     console.log("Comentarios de articulo: " + JSON.stringify(article.comments));
-
 
     const newvalues = {
         $set: {
@@ -88,5 +135,38 @@ async function deleteArticle(idArticle) {
     return result;
 }
 
+async function deleteComment(idArticle, idComment) {
+    // const clientmongo = await connection.getConnection();
+    console.log("ID ARTICLE: " + idArticle);
+    console.log("ID idComment: " + idComment);
 
-module.exports = { getArticles, getArticle, addArticle, addComment, deleteArticle } 
+    try {
+        const findedArticle = await getArticle(idArticle);
+        console.log("SE ENCUENTRA ARTICULO " + JSON.stringify(findedArticle));
+
+        console.log(findedArticle != null);
+        console.log(findedArticle == null);
+
+        if (findedArticle != null) {
+            console.log("adentro de if");
+            findedArticle.comments = findedArticle.comments.filter(c => c._id != idComment);
+            console.log(findedArticle.comments);
+            const result = await updateArticle(findedArticle);
+            console.log("RESULTADO DELETE COMMENT : " + JSON.stringify(result));
+            return result;
+        }
+    } catch (error) {
+        throw new Error("No se puedo eliminar el comentario");
+    }
+}
+
+module.exports =
+{
+    getArticles,
+    getArticle,
+    addArticle,
+    addComment,
+    deleteArticle,
+    deleteComment,
+    updateComment
+} 
